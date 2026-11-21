@@ -134,6 +134,12 @@ ruby{ruby-align:center}rt{font-size:.5em;color:#8b95a1;font-weight:500;letter-sp
 .rvchip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;color:#4e5968;display:inline-flex;gap:6px;align-items:baseline}
 .rvchip b{font-size:14px;color:var(--ink)}
 .cta.soft{background:#fff4e6;color:#d9480f;height:50px;font-size:15px}
+.mdcard{margin-top:12px;background:var(--card);border-radius:26px;padding:18px 18px 12px}
+.mdrow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:var(--bg,#f2f4f6);border-radius:16px;padding:12px 14px;margin-top:8px;font:inherit;color:inherit}
+.mdk{flex:none;font-size:11px;font-weight:800;color:#3182f6;background:rgba(49,130,246,.12);border-radius:8px;padding:3px 7px}
+.mdt{flex:1;min-width:0;font-size:15px;font-weight:700;line-height:1.35;word-break:break-all}
+.mdt b{color:#f04452}
+.mdy{flex:none;font-size:12px;opacity:.6}
 .ytcard{margin-top:12px;background:var(--card);border-radius:26px;padding:18px 18px 16px}
 .yth{font-weight:800;font-size:16px;display:flex;align-items:center;gap:8px}
 .ytdot{width:22px;height:16px;border-radius:5px;background:#f03e3e;position:relative;flex:none}.ytdot:after{content:"";position:absolute;left:8px;top:4px;border-left:7px solid #fff;border-top:4px solid transparent;border-bottom:4px solid transparent}
@@ -664,6 +670,20 @@ function speakSentence(lv,u,id,jp,has){
 }
 function ap(lv,u){return lv+"_"+pad2(Math.floor((u-1)/5));}
 function loadX(lv){ return loadScript("data/x_"+lv+".js").then(function(){return (window.JPX||{})[lv]||{};}).catch(function(){return {};}); }
+function loadM(lv){ return loadScript("data/m_"+lv+".js").then(function(){return (window.JPMD||{})[lv]||{};}).catch(function(){return {};}); }
+function mediaHtml(w,M){
+  var L=M[w.id]; if(!L||!L.length) return "";
+  var KN={a:"애니",s:"노래",d:"드라마",m:"영화"};
+  var st=(w.jp.match(/^(.*[\u4e00-\u9fff])/)||[0,w.jp])[1];
+  var hl=function(t){ var i=t.indexOf(st); return i<0?esc(t):esc(t.slice(0,i))+'<b>'+esc(st)+'</b>'+esc(t.slice(i+st.length)); };
+  var h='<div class="mdcard"><div class="yth"><span class="ytdot" style="background:#3182f6"></span>실제 작품 제목에서 만나기</div><div class="yts">제목에 이 단어가 들어간 실제 작품이에요. 누르면 YouTube에서 찾아봐요.</div>';
+  L.forEach(function(r){
+    var q=encodeURIComponent(r[1]+(r[4]?" "+r[4]:""));
+    var u=r[0]==="s"?"https://music.youtube.com/search?q="+q:"https://www.youtube.com/results?search_query="+q;
+    h+='<button class="mdrow" data-a="ext" data-u="'+u+'"><span class="mdk">'+(KN[r[0]]||"작품")+'</span><span class="mdt" lang="ja">'+hl(r[1])+'</span><span class="mdy">'+(r[4]?esc(r[4])+" · ":"")+(r[2]||"")+'</span></button>';
+  });
+  return h+'</div>';
+}
 function loadG(lv){ return loadScript("data/g_"+lv+".js").then(function(){return (window.JPG||{})[lv]||[];}).catch(function(){return [];}); }
 function loadGF(){ return loadScript("data/gf.js").then(function(){return window.JPGF||[];}).catch(function(){return [];}); }
 function loadKV(sv){ return loadScript("data/kv.js").then(function(){return window.JPKV||{};}).catch(function(){return {};}); }
@@ -693,9 +713,10 @@ function startYG(q){
 }
 function studyExtras(w,lv,u,i){
   var box=document.getElementById("extras"); if(!box) return;
-  loadX(lv).then(function(X){
+  Promise.all([loadX(lv),loadM(lv)]).then(function(rr){
+    var X=rr[0], MD=rr[1];
     if(!document.getElementById("extras")||box.dataset.id!==w.id) return;
-    var ks=kanjiOf(w), h=exHtml(w,X);
+    var ks=kanjiOf(w), h=exHtml(w,X)+mediaHtml(w,MD);
     if(ks.length) h+='<div class="row"><button class="cta soft" data-a="write" data-l="'+lv+'" data-u="'+u+'" data-i="'+i+'">한자 쓰기 연습'+(ks.some(function(c){return store.wr[c];})?' · '+ks.map(function(c){return (store.wr[c]||0)+'회';}).join(' / '):'')+'</button></div>';
     box.innerHTML=h;
   });
@@ -890,7 +911,7 @@ function openSettings(){
   h+='<div class="rd"><div class="rl">단어 발음</div><span class="seg"><button data-a="setv" data-v="file" class="'+(store.voice!=="dev"?'on':'')+'">새 음성 (내장)</button><button data-a="setv" data-v="dev" class="'+(store.voice==="dev"?'on':'')+'">기기 음성</button></span><p class="sub" style="font-size:12px;margin-top:6px">'+(dv?'기기 음성은 휴대폰·브라우저에 들어 있는 일본어 음성으로 읽어요. 예문은 내장 음성이 없으면 기기 음성으로 읽어요.':'이 기기에서는 일본어 기기 음성을 찾지 못했어요.'+(ENV.android?' <button class="lnk" data-a="ttsinst">음성 데이터 설치</button>':''))+'</p><button class="spk sm" data-a="settest" style="margin-top:6px">'+IC.spk+'들어 보기</button></div>';
   h+='<div class="rd"><div class="rl">예문 후리가나</div><span class="seg"><button data-a="setf" data-v="1" class="'+(store.furi?'on':'')+'">표시</button><button data-a="setf" data-v="0" class="'+(!store.furi?'on':'')+'">숨김</button></span></div>';
   if(ENV.online){ var st=pfStat(); h+='<div class="rd"><div class="rl">그림·음성 내려받기</div><p class="sub" style="font-size:12px;line-height:1.6">그림과 음성은 처음 볼 때 인터넷에서 받아 폰에 저장해요. 급수를 누르면 그 급수를 미리 전부 받아 두어 인터넷 없이도 쓸 수 있어요. (Wi-Fi 권장, 전체 약 700MB)</p><p class="sub" id="pfstat" style="font-size:12px;margin-top:6px;font-weight:700">'+st+'</p><span class="seg" style="margin-top:8px;flex-wrap:wrap">'+["N5","N4","N3","N2","N1"].map(function(l){return '<button data-a="pf" data-l="'+l+'">'+l+'</button>';}).join("")+'<button data-a="pf" data-l="">전체</button></span><br><button class="lnk" data-a="pfstop" style="margin-top:8px">받기 멈추기</button></div>'; }
-  h+='<div class="rd"><div class="rl">자료 출처</div><p class="sub" style="font-size:12px;line-height:1.6">한자 획 데이터: KanjiVG (Ulrich Apel, CC BY-SA 3.0) · 문법 항목 목록: hanabira.org (CC BY 4.0) · 단어 목록: open-anki-jlpt-decks · 한자 읽기: kanji-data · 손글씨 인식: KanjiCanvas (MIT) · 내장 음성: Kokoro (Apache-2.0)<br>그림과 설명은 모두 이 앱을 위해 새로 만든 것이며, JLPT 공식 출제 목록은 공개되어 있지 않습니다.</p></div>';
+  h+='<div class="rd"><div class="rl">자료 출처</div><p class="sub" style="font-size:12px;line-height:1.6">한자 획 데이터: KanjiVG (Ulrich Apel, CC BY-SA 3.0) · 애니 제목: anime-offline-database (manami-project, ODbL 1.0) · 문법 항목 목록: hanabira.org (CC BY 4.0) · 단어 목록: open-anki-jlpt-decks · 한자 읽기: kanji-data · 손글씨 인식: KanjiCanvas (MIT) · 내장 음성: Kokoro (Apache-2.0)<br>그림과 설명은 모두 이 앱을 위해 새로 만든 것이며, JLPT 공식 출제 목록은 공개되어 있지 않습니다.</p></div>';
   h+='<div class="row"><button class="cta gray" data-a="closesheet">닫기</button></div></div>';
   sheet.className="on"; sheet.innerHTML=h;
 }

@@ -12,6 +12,7 @@ JLPT N5~N1 단어 8,034개와 여행 단어 50개의 그림(GIF)·발음·예문
 
 - 한자 획 데이터: [KanjiVG](https://kanjivg.tagaini.net) (Ulrich Apel, CC BY-SA 3.0). `data/kv.js` 는 KanjiVG의 획 경로를 옮긴 것이며 같은 CC BY-SA 3.0 조건을 따릅니다.
 - 문법 항목 목록: hanabira.org 공개 자료 (CC BY 4.0)
+- 작품 제목(`data/m_*.js`의 애니·영화 제목): [anime-offline-database](https://github.com/manami-project/anime-offline-database) (manami-project, ODbL 1.0). `data/m_*.js` 는 이 DB에서 뽑은 것이며 같은 ODbL 1.0 조건을 따릅니다.
 - 단어 목록: open-anki-jlpt-decks / 한자 읽기: kanji-data
 - 손글씨 인식: KanjiCanvas (MIT)
 - 내장 음성: Kokoro TTS (Apache-2.0) 로 합성
